@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeatherGPT | Conversational Weather Intelligence</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #fff;
+      --ink: #15233b;
+      --muted: #66758d;
+      --blue: #246bfd;
+      --cyan: #23b8d6;
+      --line: #e2e9f3;
+      --good: #138a68;
+      --warn: #d88718;
+      --shadow: 0 12px 34px rgba(28, 56, 99, .08)
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      color: var(--ink)
+    }
+
+    button,
+    input,
+    select {
+      font: inherit
+    }
+
+    button {
+      cursor: pointer;
+      border: 0
+    }
+
+    header {
+      background: linear-gradient(120deg, #123a78, #2368cf 58%, #28b9d5);
+      color: #fff;
+      padding: 18px max(20px, calc((100% - 1200px)/2));
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #ffffff22;
+      display: grid;
+      place-items: center;
+      font-size: 25px;
+      border: 1px solid #ffffff40
+    }
+
+    .brand h1 {
+      font-size: 21px;
+      margin: 0
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      font-size: 12px;
+      opacity: .85
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      border: 1px solid #ffffff55;
+      background: #ffffff18;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: auto;
+      padding: 24px 20px 40px
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.35fr .65fr;
+      gap: 18px;
+      margin-bottom: 18px
+    }
+
+    .hero-main {
+      background: linear-gradient(130deg, #fff, #eaf4ff);
+      border: 1px solid #dce9fa;
+      border-radius: 22px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 1.4px;
+      text-transform: uppercase
+    }
+
+    .hero h2 {
+      font-size: clamp(25px, 4vw, 39px);
+      line-height: 1.12;
+      margin: 10px 0
+    }
+
+    .hero p {
+      color: var(--muted);
+      max-width: 650px;
+      line-height: 1.55;
+      margin: 0
+    }
+
+    .searchrow {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      max-width: 590px
+    }
+
+    .searchrow input {
+      flex: 1;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid #d5e0ef;
+      border-radius: 12px;
+      background: #fff;
+      outline: none
+    }
+
+    .primary {
+      background: var(--blue);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px 17px;
+      font-weight: 700
+    }
+
+    .secondary {
+      background: #edf3ff;
+      color: #1e56bb;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 700
+    }
+
+    .hero-side {
+      border-radius: 22px;
+      background: #153d79;
+      color: #fff;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 220px
+    }
+
+    .hero-side .big {
+      font-size: 46px;
+      font-weight: 750;
+      letter-spacing: -2px
+    }
+
+    .hero-side p {
+      color: #d5e5ff;
+      font-size: 13px
+    }
+
+    .weather-symbol {
+      font-size: 42px;
+      float: right
+    }
+
+    .smallcaps {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: .8
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin: 16px 0
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 17px;
+      box-shadow: var(--shadow);
+      min-width: 0
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .metric {
+      font-size: 26px;
+      font-weight: 800;
+      margin: 9px 0 4px
+    }
+
+    .metric-foot {
+      font-size: 11px;
+      color: var(--good)
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 26px 0 12px
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-size: 18px
+    }
+
+    .section-head span {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 16px
+    }
+
+    .forecast {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-top: 14px
+    }
+
+    .day {
+      background: #f6f9fe;
+      border: 1px solid #e8eef7;
+      border-radius: 13px;
+      text-align: center;
+      padding: 13px 5px
+    }
+
+    .day b {
+      font-size: 12px
+    }
+
+    .day .icon {
+      font-size: 26px;
+      margin: 9px 0
+    }
+
+    .day strong {
+      font-size: 14px
+    }
+
+    .day small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 4px
+    }
+
+    .chart {
+      height: 110px;
+      display: flex;
+      align-items: end;
+      gap: 10px;
+      padding: 10px 5px 0;
+      border-bottom: 1px solid var(--line);
+      margin-top: 12px
+    }
+
+    .barcol {
+      flex: 1;
+      text-align: center;
+      font-size: 10px;
+      color: var(--muted)
+    }
+
+    .bar {
+      width: 100%;
+      max-width: 34px;
+      margin: auto auto 6px;
+      border-radius: 7px 7px 2px 2px;
+      background: linear-gradient(#52c7eb, #2874ee);
+      min-height: 10px
+    }
+
+    .alert {
+      display: flex;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--line)
+    }
+
+    .alert:last-child {
+      border-bottom: 0
+    }
+
+    .alert-icon {
+      width: 37px;
+      height: 37px;
+      flex: 0 0 37px;
+      border-radius: 12px;
+      background: #fff1db;
+      display: grid;
+      place-items: center
+    }
+
+    .alert strong {
+      font-size: 13px
+    }
+
+    .alert p {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 5px 0 0;
+      line-height: 1.45
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 7px;
+      border-radius: 6px;
+      margin-left: 5px;
+      background: #fff0d9;
+      color: #a86606
+    }
+
+    .tag.blue {
+      background: #e6f0ff;
+      color: #2058b9
+    }
+
+    .chatbox {
+      display: flex;
+      flex-direction: column;
+      min-height: 340px
+    }
+
+    .chatlog {
+      flex: 1;
+      max-height: 280px;
+      overflow: auto;
+      padding: 5px 0 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px
+    }
+
+    .bubble {
+      max-width: 90%;
+      padding: 11px 13px;
+      border-radius: 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap
+    }
+
+    .bot {
+      background: #f0f5fc;
+      border: 1px solid #e3ebf6;
+      align-self: flex-start
+    }
+
+    .user {
+      background: #246bfd;
+      color: white;
+      align-self: flex-end
+    }
+
+    .chatinput {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px
+    }
+
+    .chatinput input {
+      min-width: 0;
+      flex: 1;
+      border: 1px solid #dbe4f0;
+      border-radius: 10px;
+      padding: 11px
+    }
+
+    .quickprompts {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin: 10px 0 12px
+    }
+
+    .quickprompts button {
+      background: #edf3ff;
+      color: #285db7;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 11px
+    }
+
+    .mapfake {
+      height: 190px;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #eaf3e9;
+      position: relative;
+      border: 1px solid #dce8d9
+    }
+
+    .mapfake:before,
+    .mapfake:after {
+      content: "";
+      position: absolute;
+      background: #fff;
+      border: 2px solid #dce6df;
+      transform: rotate(-18deg);
+      width: 130%;
+      height: 22px;
+      left: -10%;
+      top: 40%
+    }
+
+    .mapfake:after {
+      transform: rotate(31deg);
+      top: 65%;
+      left: -5%;
+      height: 15px
+    }
+
+    .river {
+      position: absolute;
+      background: #b8e3f6;
+      width: 120%;
+      height: 35px;
+      top: 18%;
+      left: -10%;
+      transform: rotate(15deg);
+      z-index: 1
+    }
+
+    .map-pin {
+      position: absolute;
+      z-index: 3;
+      top: 43%;
+      left: 51%;
+      font-size: 27px;
+      filter: drop-shadow(0 3px 3px #888)
+    }
+
+    .map-label {
+      position: absolute;
+      z-index: 3;
+      top: 59%;
+      left: 53%;
+      background: #fff;
+      padding: 5px 8px;
+      border-radius: 7px;
+      font-size: 11px;
+      box-shadow: 0 2px 8px #0001
+    }
+
+    .map-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px
+    }
+
+    .map-controls select,
+    .map-controls button {
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fff;
+      font-size: 12px
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    .info-list {
+      display: grid;
+      gap: 12px
+    }
+
+    .info-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start
+    }
+
+    .info-item .ico {
+      font-size: 19px
+    }
+
+    .info-item b {
+      font-size: 13px
+    }
+
+    .info-item p {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 4px 0 0;
+      line-height: 1.4
+    }
+
+    .footer {
+      text-align: center;
+      color: #7b8798;
+      font-size: 11px;
+      padding: 24px 10px 0
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #14294a;
+      color: white;
+      padding: 11px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      display: none;
+      box-shadow: var(--shadow);
+      z-index: 20
+    }
+
+    .notice {
+      font-size: 11px;
+      color: #7d8999;
+      margin-top: 12px;
+      line-height: 1.45
+    }
+
+    @media(max-width:850px) {
+      .hero {
+        grid-template-columns: 1fr
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .main-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media(max-width:500px) {
+      .wrap {
+        padding: 15px 12px 28px
+      }
+
+      .hero-main,
+      .hero-side {
+        padding: 18px
+      }
+
+      .forecast {
+        gap: 5px
+      }
+
+      .day {
+        padding: 10px 2px
+      }
+
+      .day .icon {
+        font-size: 21px
+      }
+
+      .searchrow {
+        flex-direction: column
+      }
+
+      .searchrow .primary {
+        width: 100%
+      }
+
+      .brand h1 {
+        font-size: 18px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">🌦️</div>
+      <div>
+        <h1>WeatherGPT</h1>
+        <p>Conversational AI for weather intelligence</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <label for="languageSelect" style="font-size:12px;color:#fff;font-weight:700">🌐 Language</label>
+      <select id="languageSelect" aria-label="Choose language"
+        style="border:1px solid #ffffff66;background:#ffffff;color:#173b70;border-radius:10px;padding:9px 11px;font:inherit;font-size:12px;max-width:180px">
+        <option value="en">English</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="ml">മലയാളം (Malayalam)</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      </select>
+
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-main">
+        <div class="eyebrow">Weather, explained naturally</div>
+        <h2>Understand the weather.<br>Prepare with confidence.</h2>
+        <p>Ask questions in plain language, explore forecast summaries, review sample alerts, and discover practical
+          safety guidance in one place.</p>
+        <div class="searchrow"><input id="cityInput" value="Madurai" aria-label="City name"
+            placeholder="Enter a city, e.g. Chennai"><button class="primary" id="searchBtn">Get weather</button></div>
+        <div class="notice">Prototype note: displayed conditions and alerts are simulated sample data for review, not
+          live meteorological observations.</div>
+      </div>
+      <div class="hero-side">
+        <div><span class="smallcaps" id="currentCity">MADURAI, INDIA</span><span class="weather-symbol"
+            id="currentIcon">⛅</span></div>
+        <div>
+          <div class="big"><span id="temp">31</span>°C</div>
+          <div id="condition">Partly cloudy</div>
+          <p id="feels">Feels like 35°C · H: 33° L: 25°</p>
+        </div>
+        <div class="smallcaps">Sample conditions · Demo only</div>
+      </div>
+    </section>
+    <section class="grid" aria-label="Current weather metrics">
+      <div class="card">
+        <div class="metric-label">💧 Humidity</div>
+        <div class="metric" id="humidity">68%</div>
+        <div class="metric-foot">Comfort insights available</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">💨 Wind speed</div>
+        <div class="metric" id="wind">14 km/h</div>
+        <div class="metric-foot">Light to moderate breeze</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">☀️ UV index</div>
+        <div class="metric" id="uv">8 · High</div>
+        <div class="metric-foot">Limit midday sun exposure</div>
+      </div>
+      <div class="card">
+        <div class="metric-label">🌧️ Rain chance</div>
+        <div class="metric" id="rain">35%</div>
+        <div class="metric-foot">Carry an umbrella if outdoors</div>
+      </div>
+    </section>
+    <div class="main-grid">
+      <section>
+        <div class="section-head">
+          <h3>5-day forecast</h3><span>Illustrative forecast</span>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
+            <div><b id="forecastTitle">Coming days in Madurai</b>
+              <div class="metric-label" style="margin-top:5px">Daily high / low · Sample values</div>
+            </div><span style="font-size:25px">📅</span>
+          </div>
+          <div class="forecast" id="forecast"></div>
+        </div>
+        <div class="section-head">
+          <h3>Temperature trend</h3><span>Sample daytime highs</span>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between"><span class="metric-label">Daytime
+              temperature</span><b style="font-size:12px">°C</b></div>
+          <div class="chart" id="chart"></div>
+        </div>
+        <div class="section-head">
+          <h3>Weather map preview</h3><span>Illustrative only</span>
+        </div>
+        <div class="card">
+          <div class="mapfake">
+            <div class="river"></div>
+            <div class="map-pin">📍</div>
+            <div class="map-label" id="mapLabel">Madurai</div>
+          </div>
+          <div class="map-controls"><select id="mapLayer" aria-label="Map layer">
+              <option>Temperature layer</option>
+              <option>Rainfall layer</option>
+              <option>Wind layer</option>
+              <option>Cloud cover layer</option>
+            </select><button id="layerBtn" class="secondary">Apply layer</button><span class="metric-label"
+              id="layerStatus">Temperature layer selected</span></div>
+        </div>
+      </section>
+      <section>
+        <div class="section-head">
+          <h3>WeatherGPT assistant</h3><span><span style="color:#1a9b73">●</span> Ready</span>
+        </div>
+        <div class="card chatbox">
+          <div class="audio-controls" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+            <button type="button" class="secondary" id="speakWeatherBtn" aria-label="Read current weather aloud">🔊 Read
+              weather aloud</button>
+            <button type="button" class="secondary" id="speakLatestBtn"
+              aria-label="Read latest assistant response aloud">🗣️ Read latest answer</button>
+            <button type="button" class="secondary" id="stopAudioBtn" aria-label="Stop audio">⏹ Stop audio</button>
+          </div>
+          <div class="chatlog" id="chatlog">
+            <div class="bubble bot">Hi! I’m WeatherGPT. Ask me about today’s weather, rain probability, what to wear,
+              travel planning, or weather safety. This demo uses sample data.</div>
+          </div>
+          <div class="quickprompts"><button data-prompt="Will it rain today?">Rain today?</button><button
+              data-prompt="What should I wear today?">What to wear</button><button
+              data-prompt="Give me heat safety tips">Heat safety</button><button
+              data-prompt="Is it safe to travel?">Travel advice</button></div>
+          <div class="chatinput"><input id="chatInput" placeholder="Ask a weather question..."
+              aria-label="Ask WeatherGPT"><button class="primary" id="sendBtn">Send</button></div>
+          <div class="notice">Demo assistant uses local rule-based responses. No AI API or live weather service is
+            connected.</div>
+        </div>
+        <div class="section-head">
+          <h3>Weather alerts</h3><span>Sample alert feed</span>
+        </div>
+        <div class="card">
+          <div class="alert">
+            <div class="alert-icon">🌡️</div>
+            <div><strong>High temperature advisory <span class="tag">CAUTION</span></strong>
+              <p>Stay hydrated, seek shade during peak afternoon hours, and check official local advisories.</p>
+            </div>
+          </div>
+          <div class="alert">
+            <div class="alert-icon">🌧️</div>
+            <div><strong>Possible scattered showers <span class="tag blue">WATCH</span></strong>
+              <p>Rain may affect outdoor plans. Check official forecasts before travelling.</p>
+            </div>
+          </div>
+          <div class="alert">
+            <div class="alert-icon">📢</div>
+            <div><strong>Official alert integration</strong>
+              <p>Planned feature: verified IMD warnings with source, issue time, affected area, and validity period.</p>
+            </div>
+          </div>
+          <div class="notice">These are mock alerts created for the presentation. They are not official warnings.</div>
+        </div>
+      </section>
+    </div>
+    <div class="section-head">
+      <h3>Preparedness & climate information</h3><span>Helpful actions</span>
+    </div>
+    <div class="bottom-grid">
+      <div class="card">
+        <div class="info-list">
+          <div class="info-item">
+            <div class="ico">🧴</div>
+            <div><b>Heat safety</b>
+              <p>Drink water regularly, wear light clothing, and reduce strenuous outdoor activity during the hottest
+                hours.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="ico">☔</div>
+            <div><b>Rain & thunderstorm safety</b>
+              <p>Move indoors during lightning, avoid flooded roads, and never walk or drive through fast-moving
+                floodwater.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="ico">🧭</div>
+            <div><b>Before you travel</b>
+              <p>Check the latest forecast, road conditions, and official local warnings before starting your journey.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="eyebrow">Project overview</div>
+        <h3 style="margin:8px 0 10px">One interface, clearer decisions</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <div class="ico">💬</div>
+            <div><b>Conversational weather Q&A</b>
+              <p>Natural-language questions with plain-language explanations.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="ico">🔔</div>
+            <div><b>Weather alerts & notifications</b>
+              <p>Demo alert feed; future integration for verified location-based alerts.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="ico">🌍</div>
+            <div><b>Climate information</b>
+              <p>Planned: historical trends, climate summaries, and understandable visual insights.</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <div class="ico">🇮🇳</div>
+            <div><b>India-focused experience</b>
+              <p>Designed with local city search, regional-language support, and official-source attribution in mind.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer"> WeatherGPT <br>Interactive front-end prototype for demo review. Weather, forecasts, maps, and
+      alerts are simulated; verify safety-critical information with official IMD and local authorities.</div>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script>
+    let cityData = { name: 'Madurai', temp: '--', condition: 'Loading live weather…', feels: '', humidity: '--', wind: '--', uv: '--', rain: '--', highs: [], lows: [], icons: [], conditions: [], daily: [] };
+    function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000) }
+    function weatherIcon(code) { if (code === 0) return '☀️'; if ([1, 2].includes(code)) return '🌤️'; if (code === 3) return '☁️'; if ([45, 48].includes(code)) return '🌫️'; if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return '🌧️'; if ([95, 96, 99].includes(code)) return '⛈️'; return '🌦️' }
+    function weatherText(code) { if (code === 0) return 'Clear'; if ([1, 2].includes(code)) return 'Mainly clear / partly cloudy'; if (code === 3) return 'Overcast'; if ([45, 48].includes(code)) return 'Fog'; if ([51, 53, 55, 56, 57].includes(code)) return 'Drizzle'; if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return 'Rain / showers'; if ([95, 96, 99].includes(code)) return 'Thunderstorm'; return 'Variable conditions' }
+    function dayName(date) { return new Date(date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) }
+    async function renderCity(raw) {
+      const city = (raw || '').trim(); if (!city) { toast('Enter a city name first.'); return } const btn = document.getElementById('searchBtn'); btn.disabled = true; btn.textContent = 'Loading…';
+      try {
+        const res = await fetch('/api/weather?city=' + encodeURIComponent(city)); const data = await res.json(); if (!res.ok) throw new Error(data.detail || 'Could not retrieve weather data.');
+        cityData = { ...data }; document.getElementById('currentCity').textContent = data.city.toUpperCase() + ', INDIA'; document.getElementById('currentIcon').textContent = weatherIcon(data.current.weather_code); document.getElementById('temp').textContent = Math.round(data.current.temperature_2m); document.getElementById('condition').textContent = weatherText(data.current.weather_code); document.getElementById('feels').textContent = `Feels like ${Math.round(data.current.apparent_temperature)}°C · H: ${Math.round(data.daily.temperature_2m_max[0])}° L: ${Math.round(data.daily.temperature_2m_min[0])}°`;
+        document.getElementById('humidity').textContent = Math.round(data.current.relative_humidity_2m) + '%'; document.getElementById('wind').textContent = Math.round(data.current.wind_speed_10m) + ' km/h'; document.getElementById('uv').textContent = data.daily.uv_index_max?.[0] != null ? Math.round(data.daily.uv_index_max[0]) : 'N/A'; document.getElementById('rain').textContent = (data.daily.precipitation_probability_max?.[0] != null ? Math.round(data.daily.precipitation_probability_max[0]) + '%' : Math.round(data.daily.precipitation_sum?.[0] || 0) + ' mm'); document.getElementById('forecastTitle').textContent = 'Coming days in ' + data.city; document.getElementById('mapLabel').textContent = data.city;
+        const n = Math.min(5, data.daily.time.length); const forecast = document.getElementById('forecast'); forecast.innerHTML = Array.from({ length: n }, (_, i) => `<div class="day"><b>${i === 0 ? 'Today' : dayName(data.daily.time[i])}</b><div class="icon">${weatherIcon(data.daily.weather_code[i])}</div><strong>${Math.round(data.daily.temperature_2m_max[i])}°</strong><small>${Math.round(data.daily.temperature_2m_min[i])}° low</small><small>${weatherText(data.daily.weather_code[i])}</small></div>`).join('');
+        document.getElementById('chart').innerHTML = Array.from({ length: n }, (_, i) => { const v = Math.round(data.daily.temperature_2m_max[i]); return `<div class="barcol"><div class="bar" style="height:${Math.max(20, (v - 10) * 5)}px"></div>${i === 0 ? 'Today' : dayName(data.daily.time[i]).split(' ')[0]}<br><b>${v}°</b></div>` }).join('');
+        const note = document.querySelector('.notice'); if (note) note.textContent = 'Live forecast data from Open-Meteo. Weather forecasts can change; use official IMD alerts for safety-critical decisions.'; toast('Live weather loaded for ' + data.city);
+      } catch (e) { toast(e.message + ' Check internet connection or try a nearby city.') } finally { btn.disabled = false; btn.textContent = 'Get weather' }
+    }
+    async function loadOutlook() { if (!cityData.city) { toast('Load a city first.'); return } const btn = document.getElementById('outlookBtn'); if (btn) { btn.disabled = true; btn.textContent = 'Loading outlook…' } try { const r = await fetch('/api/outlook?city=' + encodeURIComponent(cityData.city)); const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Seasonal outlook unavailable'); const n = d.daily.time.length; if (!n) throw new Error('No outlook records were returned for next month.'); document.getElementById('forecastTitle').textContent = `Next-month outlook · ${d.city} · ${d.month}`; document.getElementById('forecast').innerHTML = `<div class="day"><b>Avg temperature</b><div class="icon">🌡️</div><strong>${d.summary.temperature_mean == null ? 'N/A' : Math.round(d.summary.temperature_mean) + '°C'}</strong><small>Model outlook</small></div><div class="day"><b>Rainfall</b><div class="icon">🌧️</div><strong>${d.summary.precipitation_sum == null ? 'N/A' : Math.round(d.summary.precipitation_sum) + ' mm'}</strong><small>Monthly total estimate</small></div><div class="day"><b>Humidity</b><div class="icon">💧</div><strong>${d.summary.humidity_mean == null ? 'N/A' : Math.round(d.summary.humidity_mean) + '%'}</strong><small>Average</small></div><div class="day"><b>Wind</b><div class="icon">💨</div><strong>${d.summary.wind_mean == null ? 'N/A' : Math.round(d.summary.wind_mean) + ' km/h'}</strong><small>Average</small></div>`; document.getElementById('chart').innerHTML = d.daily.time.slice(0, 10).map((date, i) => { const v = d.daily.temperature_2m_mean?.[i]; return `<div class="barcol"><div class="bar" style="height:${Math.max(10, ((v ?? 20) - 10) * 4)}px"></div>${date.slice(8)}<br><b>${v == null ? '—' : Math.round(v) + '°'}</b></div>` }).join(''); toast('Seasonal outlook loaded. It is a model estimate, not a guaranteed daily forecast.') } catch (e) { toast(e.message) } finally { if (btn) { btn.disabled = false; btn.textContent = 'Next-month outlook' } } }
+    function answer(q) { const s = q.toLowerCase(), d = cityData; if (!d.city) return 'Load a city to ask about its weather.'; if (s.includes('history') || s.includes('historical') || s.includes('climate')) return 'Historical rainfall analysis is available through the project API after you place your downloaded data.gov.in CSV in the data folder. Use /api/history to inspect detected annual summaries.'; if (s.includes('rain') || s.includes('umbrella')) return `For ${d.city}, the current forecast shows ${d.daily?.precipitation_probability_max?.[0] != null ? d.daily.precipitation_probability_max[0] + '% precipitation probability' : (d.daily?.precipitation_sum?.[0] ?? 'unknown') + ' mm forecast precipitation'}. Check the latest IMD alerts before travel.`; if (s.includes('humidity')) return `Current relative humidity in ${d.city} is ${d.current?.relative_humidity_2m ?? 'unavailable'}%.`; if (s.includes('wind')) return `Current wind speed in ${d.city} is ${d.current?.wind_speed_10m ?? 'unavailable'} km/h.`; if (s.includes('temperature') || s.includes('weather') || s.includes('forecast') || s.includes('today')) return `Live conditions in ${d.city}: ${d.current?.temperature_2m ?? 'N/A'}°C, ${weatherText(d.current?.weather_code)}, humidity ${d.current?.relative_humidity_2m ?? 'N/A'}%, wind ${d.current?.wind_speed_10m ?? 'N/A'} km/h. These values come from the latest API response.`; return 'Ask about today’s weather, rain, temperature, humidity, wind, or the next-month outlook. This demo assistant answers using the loaded weather data.' }
+    function sendMessage(q) { q = q.trim(); if (!q) return; const log = document.getElementById('chatlog'); const u = document.createElement('div'); u.className = 'bubble user'; u.textContent = q; log.appendChild(u); const b = document.createElement('div'); b.className = 'bubble bot'; b.textContent = answer(q); log.appendChild(b); document.getElementById('chatInput').value = ''; log.scrollTop = log.scrollHeight }
+    document.getElementById('searchBtn').addEventListener('click', () => renderCity(document.getElementById('cityInput').value)); document.getElementById('cityInput').addEventListener('keydown', e => { if (e.key === 'Enter') renderCity(e.target.value) }); document.getElementById('sendBtn').addEventListener('click', () => sendMessage(document.getElementById('chatInput').value)); document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(e.target.value) }); document.querySelectorAll('[data-prompt]').forEach(b => b.addEventListener('click', () => sendMessage(b.dataset.prompt))); document.getElementById('layerBtn').addEventListener('click', () => { const layer = document.getElementById('mapLayer').value; document.getElementById('layerStatus').textContent = layer + ' selected'; toast('Map layer preview is illustrative; live map tiles are not connected yet.') });
+    const forecastHead = document.querySelector('.section-head'); if (forecastHead) { const b = document.createElement('button'); b.id = 'outlookBtn'; b.className = 'btn'; b.textContent = 'Next-month outlook'; b.style.marginLeft = 'auto'; b.addEventListener('click', loadOutlook); forecastHead.appendChild(b) }
+    renderCity('Madurai');
+  </script>
+
+  <script>
+    // Lightweight UI translations for the WeatherGPT prototype.
+    // Weather values remain demo/sample values; translations do not make them live data.
+    const weatherGPTTranslations = {
+      ta: {
+        "Language": "மொழி", "Multilingual demo": "பன்மொழி டெமோ", "Conversational AI for weather intelligence": "வானிலை தகவலுக்கான உரையாடல் AI",
+        "Weather, explained naturally": "வானிலை — எளிய விளக்கம்", "Understand the weather.": "வானிலையைப் புரிந்துகொள்ளுங்கள்.", "Prepare with confidence.": "நம்பிக்கையுடன் தயாராகுங்கள்.",
+        "Ask questions in plain language, explore forecast summaries, review sample alerts, and discover practical safety guidance in one place.": "எளிய மொழியில் கேள்விகள் கேளுங்கள், முன்னறிவிப்பு சுருக்கங்களைப் பாருங்கள், எச்சரிக்கைகளை அறிந்து பாதுகாப்பு வழிகாட்டுதலைப் பெறுங்கள்.",
+        "Get weather": "வானிலையைப் பெறுக", "Enter a city, e.g. Chennai": "நகரத்தை உள்ளிடவும், எ.கா. சென்னை", "Prototype note: displayed conditions and alerts are simulated sample data for review, not live meteorological observations.": "குறிப்பு: இங்கு காட்டப்படும் வானிலை மற்றும் எச்சரிக்கைகள் மாதிரி தரவுகள் மட்டுமே; நேரடி வானிலைத் தகவல் அல்ல.",
+        "Partly cloudy": "ஓரளவு மேகமூட்டம்", "Humidity": "ஈரப்பதம்", "Wind speed": "காற்றின் வேகம்", "UV index": "UV குறியீடு", "Rain chance": "மழை வாய்ப்பு", "Comfort insights available": "உடல் வசதி குறித்த தகவல்கள்", "Light to moderate breeze": "மிதமான காற்று", "Limit midday sun exposure": "நண்பகல் வெயிலைத் தவிர்க்கவும்", "Carry an umbrella if outdoors": "வெளியே சென்றால் குடை எடுத்துச் செல்லவும்",
+        "5-day forecast": "5 நாள் முன்னறிவிப்பு", "Illustrative forecast": "மாதிரி முன்னறிவிப்பு", "Daily high / low · Sample values": "தினசரி அதிக / குறைந்த வெப்பநிலை · மாதிரி மதிப்புகள்", "Temperature trend": "வெப்பநிலை மாற்றம்", "Sample daytime highs": "மாதிரி பகல் அதிகபட்சம்", "Daytime temperature": "பகல் வெப்பநிலை", "Weather map preview": "வானிலை வரைபட முன்னோட்டம்", "Illustrative only": "விளக்கத்திற்கான மாதிரி", "Temperature layer": "வெப்பநிலை அடுக்கு", "Rainfall layer": "மழைப்பொழிவு அடுக்கு", "Wind layer": "காற்று அடுக்கு", "Cloud cover layer": "மேக மூட்ட அடுக்கு", "Apply layer": "அடுக்கைப் பயன்படுத்து", "Temperature layer selected": "வெப்பநிலை அடுக்கு தேர்ந்தெடுக்கப்பட்டது",
+        "WeatherGPT assistant": "WeatherGPT உதவியாளர்", "Ready": "தயார்", "Hi! I’m WeatherGPT. Ask me about today’s weather, rain probability, what to wear, travel planning, or weather safety. This demo uses sample data.": "வணக்கம்! நான் WeatherGPT. இன்றைய வானிலை, மழை வாய்ப்பு, உடைத் தேர்வு, பயணம் அல்லது வானிலை பாதுகாப்பு பற்றி கேளுங்கள். இது மாதிரி தரவைப் பயன்படுத்துகிறது.",
+        "Rain today?": "இன்று மழையா?", "What to wear": "என்ன உடை அணியலாம்?", "Heat safety": "வெப்பப் பாதுகாப்பு", "Travel advice": "பயண ஆலோசனை", "Ask a weather question...": "வானிலை தொடர்பான கேள்வியைக் கேளுங்கள்...", "Send": "அனுப்பு", "Demo assistant uses local rule-based responses. No AI API or live weather service is connected.": "இந்த டெமோ உதவியாளர் விதி அடிப்படையிலான பதில்களை வழங்குகிறது. AI API அல்லது நேரடி வானிலை சேவை இணைக்கப்படவில்லை.",
+        "Weather alerts": "வானிலை எச்சரிக்கைகள்", "Sample alert feed": "மாதிரி எச்சரிக்கைகள்", "High temperature advisory": "அதிக வெப்ப எச்சரிக்கை", "CAUTION": "எச்சரிக்கை", "Stay hydrated, seek shade during peak afternoon hours, and check official local advisories.": "போதுமான தண்ணீர் குடிக்கவும், கடும் பிற்பகல் வெயிலில் நிழலில் இருக்கவும், அதிகாரப்பூர்வ உள்ளூர் அறிவிப்புகளைப் பார்க்கவும்.", "Possible scattered showers": "சில இடங்களில் மழை பெய்யலாம்", "WATCH": "கவனம்", "Rain may affect outdoor plans. Check official forecasts before travelling.": "மழையால் வெளிப்புறத் திட்டங்கள் பாதிக்கப்படலாம். பயணத்திற்கு முன் அதிகாரப்பூர்வ முன்னறிவிப்பைப் பார்க்கவும்.", "Official alert integration": "அதிகாரப்பூர்வ எச்சரிக்கை இணைப்பு", "Planned feature: verified IMD warnings with source, issue time, affected area, and validity period.": "திட்டமிடப்பட்ட அம்சம்: ஆதாரம், வெளியீட்டு நேரம், பாதிக்கப்பட்ட பகுதி மற்றும் செல்லுபடிக் காலத்துடன் IMD எச்சரிக்கைகள்.", "These are mock alerts created for the presentation. They are not official warnings.": "இவை விளக்கத்திற்காக உருவாக்கப்பட்ட மாதிரி எச்சரிக்கைகள்; அதிகாரப்பூர்வ எச்சரிக்கைகள் அல்ல.",
+        "Preparedness & climate information": "தயார்நிலை மற்றும் காலநிலைத் தகவல்", "Helpful actions": "பயனுள்ள நடவடிக்கைகள்", "Heat safety": "வெப்பப் பாதுகாப்பு", "Drink water regularly, wear light clothing, and reduce strenuous outdoor activity during the hottest hours.": "தொடர்ந்து தண்ணீர் குடிக்கவும், இலகுவான உடை அணியவும், அதிக வெப்ப நேரங்களில் கடினமான வெளிப்புறச் செயல்களைத் தவிர்க்கவும்.", "Rain & thunderstorm safety": "மழை மற்றும் இடியுடன் கூடிய புயல் பாதுகாப்பு", "Move indoors during lightning, avoid flooded roads, and never walk or drive through fast-moving floodwater.": "மின்னல் நேரத்தில் கட்டிடத்துக்குள் செல்லவும்; வெள்ளம் சூழ்ந்த சாலைகளைத் தவிர்க்கவும்; வேகமாக ஓடும் வெள்ளநீரைக் கடக்க வேண்டாம்.", "Before you travel": "பயணத்திற்கு முன்", "Check the latest forecast, road conditions, and official local warnings before starting your journey.": "பயணத்தைத் தொடங்கும் முன் சமீபத்திய முன்னறிவிப்பு, சாலை நிலை மற்றும் அதிகாரப்பூர்வ எச்சரிக்கைகளைப் பார்க்கவும்.", "Project overview": "திட்டத்தின் கண்ணோட்டம்", "One interface, clearer decisions": "ஒரே இடைமுகம், தெளிவான முடிவுகள்", "Conversational weather Q&A": "உரையாடல் வானிலை கேள்வி-பதில்", "Natural-language questions with plain-language explanations.": "இயல்பான மொழிக் கேள்விகளுக்கு எளிய விளக்கங்கள்.", "Weather alerts & notifications": "வானிலை எச்சரிக்கைகள் மற்றும் அறிவிப்புகள்", "Demo alert feed; future integration for verified location-based alerts.": "மாதிரி எச்சரிக்கைகள்; எதிர்காலத்தில் சரிபார்க்கப்பட்ட இட அடிப்படையிலான எச்சரிக்கைகள் இணைக்கப்படும்.", "Climate information": "காலநிலைத் தகவல்", "Planned: historical trends, climate summaries, and understandable visual insights.": "திட்டமிடப்பட்டது: வரலாற்றுப் போக்குகள், காலநிலைச் சுருக்கங்கள் மற்றும் எளிய காட்சித் தகவல்கள்.", "India-focused experience": "இந்தியாவை மையமாகக் கொண்ட அனுபவம்", "Designed with local city search, regional-language support, and official-source attribution in mind.": "உள்ளூர் நகரத் தேடல், பிராந்திய மொழி ஆதரவு மற்றும் அதிகாரப்பூர்வ ஆதாரக் குறிப்புகளுடன் வடிவமைக்கப்பட்டது.", "Interactive front-end prototype for demo review. Weather, forecasts, maps, and alerts are simulated; verify safety-critical information with official IMD and local authorities.": "டெமோ மதிப்பாய்வுக்கான முன்மாதிரி. வானிலை, முன்னறிவிப்பு, வரைபடம் மற்றும் எச்சரிக்கைகள் மாதிரிகள் மட்டுமே; பாதுகாப்பு தொடர்பான தகவல்களை IMD மற்றும் உள்ளூர் அதிகாரிகளிடம் சரிபார்க்கவும்.",
+        "Today": "இன்று", "Wed": "புதன்", "Thu": "வியாழன்", "Fri": "வெள்ளி", "Sat": "சனி", "Feels like": "உணரப்படும் வெப்பநிலை", "No sample city found. Try Madurai, Chennai, Coimbatore, Bengaluru, Delhi, or Mumbai.": "நகர மாதிரி கிடைக்கவில்லை. மதுரை, சென்னை, கோயம்புத்தூர், பெங்களூரு, டெல்லி அல்லது மும்பையை முயற்சிக்கவும்.", "Ask me about today’s weather": "இன்றைய வானிலை பற்றி கேளுங்கள்"
+      },
+      hi: {
+        "Language": "भाषा", "Multilingual demo": "बहुभाषी डेमो", "Conversational AI for weather intelligence": "मौसम जानकारी के लिए संवादात्मक AI", "Weather, explained naturally": "मौसम को आसान भाषा में समझें", "Understand the weather.": "मौसम को समझें।", "Prepare with confidence.": "आत्मविश्वास से तैयार रहें।", "Ask questions in plain language, explore forecast summaries, review sample alerts, and discover practical safety guidance in one place.": "आसान भाषा में सवाल पूछें, पूर्वानुमान देखें, अलर्ट समझें और सुरक्षा संबंधी सुझाव एक ही जगह पाएँ।", "Get weather": "मौसम देखें", "Enter a city, e.g. Chennai": "शहर का नाम लिखें, जैसे चेन्नई", "Humidity": "नमी", "Wind speed": "हवा की गति", "UV index": "UV सूचकांक", "Rain chance": "बारिश की संभावना", "5-day forecast": "5 दिन का पूर्वानुमान", "Illustrative forecast": "उदाहरण पूर्वानुमान", "Temperature trend": "तापमान का रुझान", "Weather map preview": "मौसम मानचित्र का पूर्वावलोकन", "Apply layer": "लेयर लागू करें", "WeatherGPT assistant": "WeatherGPT सहायक", "Ready": "तैयार", "Rain today?": "क्या आज बारिश होगी?", "What to wear": "क्या पहनें?", "Heat safety": "गर्मी से सुरक्षा", "Travel advice": "यात्रा सलाह", "Ask a weather question...": "मौसम से जुड़ा सवाल पूछें...", "Send": "भेजें", "Weather alerts": "मौसम अलर्ट", "Sample alert feed": "नमूना अलर्ट", "Preparedness & climate information": "तैयारी और जलवायु जानकारी", "Helpful actions": "उपयोगी सुझाव", "Project overview": "परियोजना परिचय", "One interface, clearer decisions": "एक इंटरफ़ेस, बेहतर निर्णय", "Heat safety": "गर्मी से सुरक्षा", "Before you travel": "यात्रा से पहले", "Climate information": "जलवायु जानकारी", "India-focused experience": "भारत-केंद्रित अनुभव", "Today": "आज", "Wed": "बुध", "Thu": "गुरु", "Fri": "शुक्र", "Sat": "शनि", "Temperature layer": "तापमान परत", "Rainfall layer": "वर्षा परत", "Wind layer": "हवा परत", "Cloud cover layer": "बादल परत"
+      },
+      te: {
+        "Language": "భాష", "Multilingual demo": "బహుభాషా డెమో", "Get weather": "వాతావరణం చూడండి", "Humidity": "తేమ", "Wind speed": "గాలి వేగం", "UV index": "UV సూచిక", "Rain chance": "వర్షం అవకాశం", "5-day forecast": "5 రోజుల అంచనా", "Temperature trend": "ఉష్ణోగ్రత ధోరణి", "Weather map preview": "వాతావరణ మ్యాప్ ప్రివ్యూ", "Apply layer": "లేయర్ వర్తింపజేయి", "WeatherGPT assistant": "WeatherGPT సహాయకుడు", "Ready": "సిద్ధంగా ఉంది", "Rain today?": "ఈరోజు వర్షం పడుతుందా?", "What to wear": "ఏ దుస్తులు ధరించాలి?", "Heat safety": "వేడి నుంచి రక్షణ", "Travel advice": "ప్రయాణ సూచనలు", "Ask a weather question...": "వాతావరణ ప్రశ్న అడగండి...", "Send": "పంపండి", "Weather alerts": "వాతావరణ హెచ్చరికలు", "Preparedness & climate information": "సన్నద్ధత మరియు వాతావరణ సమాచారం", "Helpful actions": "ఉపయోగకరమైన సూచనలు", "Project overview": "ప్రాజెక్ట్ వివరాలు", "Climate information": "వాతావరణ సమాచారం", "Today": "ఈరోజు", "Wed": "బుధ", "Thu": "గురు", "Fri": "శుక్ర", "Sat": "శని", "Temperature layer": "ఉష్ణోగ్రత లేయర్", "Rainfall layer": "వర్షపాతం లేయర్", "Wind layer": "గాలి లేయర్", "Cloud cover layer": "మేఘాల లేయర్"
+      },
+      ml: {
+        "Language": "ഭാഷ", "Multilingual demo": "ബഹുഭാഷാ ഡെമോ", "Get weather": "കാലാവസ്ഥ കാണുക", "Humidity": "ഈർപ്പം", "Wind speed": "കാറ്റിന്റെ വേഗം", "UV index": "UV സൂചിക", "Rain chance": "മഴ സാധ്യത", "5-day forecast": "5 ദിവസത്തെ പ്രവചനം", "Temperature trend": "താപനിലയിലെ മാറ്റം", "Weather map preview": "കാലാവസ്ഥാ മാപ്പ് പ്രിവ്യൂ", "Apply layer": "ലെയർ പ്രയോഗിക്കുക", "WeatherGPT assistant": "WeatherGPT സഹായി", "Ready": "തയ്യാർ", "Rain today?": "ഇന്ന് മഴ പെയ്യുമോ?", "What to wear": "എന്ത് ധരിക്കണം?", "Heat safety": "ചൂടിൽ നിന്നുള്ള സുരക്ഷ", "Travel advice": "യാത്രാ നിർദേശം", "Ask a weather question...": "കാലാവസ്ഥയെക്കുറിച്ച് ചോദിക്കുക...", "Send": "അയയ്ക്കുക", "Weather alerts": "കാലാവസ്ഥാ മുന്നറിയിപ്പുകൾ", "Preparedness & climate information": "തയ്യാറെടുപ്പും കാലാവസ്ഥാ വിവരങ്ങളും", "Helpful actions": "ഉപകാരപ്രദമായ നിർദേശങ്ങൾ", "Project overview": "പദ്ധതി പരിചയം", "Climate information": "കാലാവസ്ഥാ വിവരം", "Today": "ഇന്ന്", "Wed": "ബുധൻ", "Thu": "വ്യാഴം", "Fri": "വെള്ളി", "Sat": "ശനി", "Temperature layer": "താപനില ലെയർ", "Rainfall layer": "മഴ ലെയർ", "Wind layer": "കാറ്റ് ലെയർ", "Cloud cover layer": "മേഘാവരണം ലെയർ"
+      },
+      kn: {
+        "Language": "ಭಾಷೆ", "Multilingual demo": "ಬಹುಭಾಷಾ ಡೆಮೊ", "Get weather": "ಹವಾಮಾನ ನೋಡಿ", "Humidity": "ಆರ್ದ್ರತೆ", "Wind speed": "ಗಾಳಿಯ ವೇಗ", "UV index": "UV ಸೂಚ್ಯಂಕ", "Rain chance": "ಮಳೆಯ ಸಾಧ್ಯತೆ", "5-day forecast": "5 ದಿನಗಳ ಮುನ್ಸೂಚನೆ", "Temperature trend": "ತಾಪಮಾನದ ಪ್ರವೃತ್ತಿ", "Weather map preview": "ಹವಾಮಾನ ನಕ್ಷೆ ಪೂರ್ವವೀಕ್ಷಣೆ", "Apply layer": "ಪದರ ಅನ್ವಯಿಸಿ", "WeatherGPT assistant": "WeatherGPT ಸಹಾಯಕ", "Ready": "ಸಿದ್ಧ", "Rain today?": "ಇಂದು ಮಳೆಯಾಗುತ್ತದೆಯೇ?", "What to wear": "ಏನು ಧರಿಸಬೇಕು?", "Heat safety": "ಬಿಸಿಲಿನ ಸುರಕ್ಷತೆ", "Travel advice": "ಪ್ರಯಾಣ ಸಲಹೆ", "Ask a weather question...": "ಹವಾಮಾನದ ಬಗ್ಗೆ ಕೇಳಿ...", "Send": "ಕಳುಹಿಸಿ", "Weather alerts": "ಹವಾಮಾನ ಎಚ್ಚರಿಕೆಗಳು", "Preparedness & climate information": "ಸಿದ್ಧತೆ ಮತ್ತು ಹವಾಮಾನ ಮಾಹಿತಿ", "Helpful actions": "ಉಪಯುಕ್ತ ಸಲಹೆಗಳು", "Project overview": "ಯೋಜನೆಯ ಪರಿಚಯ", "Climate information": "ಹವಾಮಾನ ಮಾಹಿತಿ", "Today": "ಇಂದು", "Wed": "ಬುಧ", "Thu": "ಗುರು", "Fri": "ಶುಕ್ರ", "Sat": "ಶನಿ", "Temperature layer": "ತಾಪಮಾನ ಪದರ", "Rainfall layer": "ಮಳೆಯ ಪದರ", "Wind layer": "ಗಾಳಿಯ ಪದರ", "Cloud cover layer": "ಮೋಡದ ಪದರ"
+      }
+    };
+
+    (function setupLanguageOptions() {
+      const select = document.getElementById('languageSelect');
+      if (!select) return;
+      const originalText = new WeakMap();
+      const originalAttrs = new WeakMap();
+      const skipTags = new Set(['SCRIPT', 'STYLE']);
+
+      function translate(language) {
+        const dictionary = weatherGPTTranslations[language] || {};
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node.parentElement && skipTags.has(node.parentElement.tagName)) continue;
+          if (!originalText.has(node)) originalText.set(node, node.nodeValue);
+          const original = originalText.get(node);
+          const trimmed = original.trim();
+          if (!trimmed) continue;
+          const translated = dictionary[trimmed];
+          if (translated) {
+            const start = original.indexOf(trimmed);
+            node.nodeValue = original.slice(0, start) + translated + original.slice(start + trimmed.length);
+          } else {
+            node.nodeValue = original;
+          }
+        }
+
+        document.querySelectorAll('input[placeholder], select[aria-label]').forEach(el => {
+          if (!originalAttrs.has(el)) originalAttrs.set(el, {
+            placeholder: el.getAttribute('placeholder'),
+            ariaLabel: el.getAttribute('aria-label')
+          });
+          const original = originalAttrs.get(el);
+          if (original.placeholder) el.setAttribute('placeholder', dictionary[original.placeholder] || original.placeholder);
+          if (original.ariaLabel) el.setAttribute('aria-label', dictionary[original.ariaLabel] || original.ariaLabel);
+        });
+        document.documentElement.lang = language;
+        document.getElementById('languageStatus').textContent = language === 'en' ? 'Multilingual demo' : ({ ta: 'பன்மொழி டெமோ', hi: 'बहुभाषी डेमो', te: 'బహుభాషా డెమో', ml: 'ബഹുഭാഷാ ഡെമോ', kn: 'ಬಹುಭಾಷಾ ಡೆಮೊ' }[language] || 'Multilingual demo');
+      }
+
+      select.addEventListener('change', () => {
+        translate(select.value);
+        // Re-render dynamic weather cards in the selected language.
+        if (typeof renderCity === 'function' && typeof cityData !== 'undefined') {
+          renderCity(cityData.name);
+          translate(select.value);
+        }
+        const greeting = document.querySelector('#chatlog .bubble.bot');
+        if (greeting && select.value !== 'en') {
+          const greetings = {
+            ta: 'வணக்கம்! நான் WeatherGPT. இன்றைய வானிலை, மழை வாய்ப்பு, உடைத் தேர்வு, பயணம் அல்லது வானிலை பாதுகாப்பு பற்றி கேளுங்கள். இது மாதிரி தரவைப் பயன்படுத்துகிறது.',
+            hi: 'नमस्ते! मैं WeatherGPT हूँ। आज के मौसम, बारिश की संभावना, कपड़ों, यात्रा या मौसम सुरक्षा के बारे में पूछें। यह डेमो नमूना डेटा उपयोग करता है।',
+            te: 'నమస్కారం! నేను WeatherGPT. ఈరోజు వాతావరణం, వర్షం అవకాశం, దుస్తులు, ప్రయాణం లేదా భద్రత గురించి అడగండి. ఈ డెమో నమూనా డేటాను ఉపయోగిస్తుంది.',
+            ml: 'നമസ്കാരം! ഞാൻ WeatherGPT. ഇന്നത്തെ കാലാവസ്ഥ, മഴസാധ്യത, വസ്ത്രം, യാത്ര, സുരക്ഷ എന്നിവയെക്കുറിച്ച് ചോദിക്കൂ. ഈ ഡെമോ മാതൃകാ ഡാറ്റയാണ് ഉപയോഗിക്കുന്നത്.',
+            kn: 'ನಮಸ್ಕಾರ! ನಾನು WeatherGPT. ಇಂದಿನ ಹವಾಮಾನ, ಮಳೆಯ ಸಾಧ್ಯತೆ, ಉಡುಪು, ಪ್ರಯಾಣ ಅಥವಾ ಸುರಕ್ಷತೆ ಬಗ್ಗೆ ಕೇಳಿ. ಈ ಡೆಮೊ ಮಾದರಿ ಡೇಟಾವನ್ನು ಬಳಸುತ್ತದೆ.'
+          };
+          greeting.textContent = greetings[select.value] || greeting.textContent;
+        }
+      });
+      // Add a subtle, accessible title to make the language selector self-explanatory.
+      select.title = 'Choose interface language / மொழியைத் தேர்ந்தெடுக்கவும்';
+    })();
+  </script>
+
+
+  <script>
+    // Browser-based text-to-speech. Speech language follows the language selector.
+    (function setupWeatherAudio() {
+      const languageSelect = document.getElementById('languageSelect');
+      const localeByLanguage = { en: 'en-IN', ta: 'ta-IN', hi: 'hi-IN', te: 'te-IN', ml: 'ml-IN', kn: 'kn-IN' };
+      const languageNames = { en: 'English', ta: 'Tamil', hi: 'Hindi', te: 'Telugu', ml: 'Malayalam', kn: 'Kannada' };
+      const getLanguage = () => languageSelect?.value || 'en';
+      const selectedLocale = () => localeByLanguage[getLanguage()] || 'en-IN';
+
+      function getVoice(locale) {
+        const voices = window.speechSynthesis.getVoices();
+        const exact = voices.find(v => (v.lang || '').toLowerCase() === locale.toLowerCase());
+        if (exact) return exact;
+        const base = locale.split('-')[0].toLowerCase();
+        return voices.find(v => (v.lang || '').toLowerCase().split('-')[0] === base) || null;
+      }
+
+      function speak(text) {
+        if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+          alert('Audio is not supported in this browser. Please use the latest Chrome or Edge.');
+          return;
+        }
+        const cleanText = String(text || '').trim();
+        if (!cleanText) {
+          alert('There is no text available to read aloud.');
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const locale = selectedLocale();
+        const voice = getVoice(locale);
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = locale;
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+        if (voice) utterance.voice = voice;
+        utterance.onerror = (event) => {
+          console.error('Speech synthesis error:', event.error);
+          if (event.error !== 'canceled' && event.error !== 'interrupted') {
+            alert('The browser could not play audio. Check your volume and available speech voices.');
+          }
+        };
+        // Do not silently pretend that a matching local-language voice is installed.
+        if (!voice && getLanguage() !== 'en') {
+          const proceed = confirm(`No ${languageNames[getLanguage()]} voice was found in this browser. It may speak with a fallback voice or sound incorrect. You can install a ${languageNames[getLanguage()]} text-to-speech voice in your operating system settings. Try anyway?`);
+          if (!proceed) return;
+        }
+        window.speechSynthesis.speak(utterance);
+      }
+
+      function currentWeatherSummary() {
+        const lang = getLanguage();
+        const city = document.getElementById('currentCity')?.textContent || 'selected location';
+        const temp = document.getElementById('temp')?.textContent || 'unavailable';
+        const condition = document.getElementById('condition')?.textContent || 'unavailable';
+        const humidity = document.getElementById('humidity')?.textContent || 'unavailable';
+        const wind = document.getElementById('wind')?.textContent || 'unavailable';
+        const rain = document.getElementById('rain')?.textContent || 'unavailable';
+        const summaries = {
+          en: `Weather report for ${city}. Temperature is ${temp} degrees Celsius. Conditions: ${condition}. Humidity is ${humidity}. Wind speed is ${wind}. Chance of rain is ${rain}. These are demo values.`,
+          ta: `${city} நகரின் வானிலை அறிக்கை. வெப்பநிலை ${temp} டிகிரி செல்சியஸ். வானிலை நிலை ${condition}. ஈரப்பதம் ${humidity}. காற்றின் வேகம் ${wind}. மழைக்கான வாய்ப்பு ${rain}. இவை மாதிரி தரவுகள்.`,
+          hi: `${city} का मौसम विवरण। तापमान ${temp} डिग्री सेल्सियस है। मौसम की स्थिति ${condition} है। आर्द्रता ${humidity} है। हवा की गति ${wind} है। बारिश की संभावना ${rain} है। ये डेमो के नमूना आँकड़े हैं।`,
+          te: `${city} నగర వాతావరణ నివేదిక. ఉష్ణోగ్రత ${temp} డిగ్రీల సెల్సియస్. వాతావరణ పరిస్థితి ${condition}. తేమ ${humidity}. గాలి వేగం ${wind}. వర్షం పడే అవకాశం ${rain}. ఇవి డెమో నమూనా వివరాలు.`,
+          ml: `${city} നഗരത്തിലെ കാലാവസ്ഥാ റിപ്പോർട്ട്. താപനില ${temp} ഡിഗ്രി സെൽഷ്യസ് ആണ്. കാലാവസ്ഥ ${condition}. ഈർപ്പം ${humidity}. കാറ്റിന്റെ വേഗം ${wind}. മഴയ്ക്കുള്ള സാധ്യത ${rain}. ഇവ ഡെമോ മാതൃകാ വിവരങ്ങളാണ്.`,
+          kn: `${city} ನಗರದ ಹವಾಮಾನ ವರದಿ. ತಾಪಮಾನ ${temp} ಡಿಗ್ರಿ ಸೆಲ್ಸಿಯಸ್. ಹವಾಮಾನ ಸ್ಥಿತಿ ${condition}. ಆರ್ದ್ರತೆ ${humidity}. ಗಾಳಿಯ ವೇಗ ${wind}. ಮಳೆಯ ಸಾಧ್ಯತೆ ${rain}. ಇವು ಡೆಮೋ ಮಾದರಿ ಮಾಹಿತಿಗಳಾಗಿವೆ.`
+        };
+        return summaries[lang] || summaries.en;
+      }
+
+      document.getElementById('speakWeatherBtn')?.addEventListener('click', () => speak(currentWeatherSummary()));
+      document.getElementById('speakLatestBtn')?.addEventListener('click', () => {
+        // Chat answers are only spoken in the selected language if the answer itself
+        // is translated. The demo chatbot may return English text; use translated
+        // weather summary instead in that case to avoid reading English as Tamil etc.
+        const replies = [...document.querySelectorAll('#chatlog .bubble.bot')];
+        const latest = replies.length ? replies[replies.length - 1].innerText.trim() : '';
+        const lang = getLanguage();
+        const nonEnglishScripts = { ta: /[\u0B80-\u0BFF]/, hi: /[\u0900-\u097F]/, te: /[\u0C00-\u0C7F]/, ml: /[\u0D00-\u0D7F]/, kn: /[\u0C80-\u0CFF]/ };
+        if (lang !== 'en' && latest && !nonEnglishScripts[lang].test(latest)) {
+          speak(currentWeatherSummary());
+          return;
+        }
+        speak(latest || currentWeatherSummary());
+      });
+      document.getElementById('stopAudioBtn')?.addEventListener('click', () => {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      });
+      if ('speechSynthesis' in window) {
+        // Some browsers load voices asynchronously.
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        window.speechSynthesis.getVoices();
+      }
+    })();
+  </script>
+
+</body>
+
+</html>
