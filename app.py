@@ -1,4 +1,6 @@
 from datetime import date, timedelta
+from time import monotonic
+from threading import Lock
 from pathlib import Path
 import calendar
 import re
@@ -11,29 +13,75 @@ ROOT = Path(__file__).resolve().parent
 app = FastAPI(title="WeatherGPT API", version="1.0.0")
 TIMEOUT = 25
 
+# Simple in-memory cache. It reduces duplicate requests while this server process
+# is running. Weather is cached for 10 minutes; seasonal outlook for 6 hours.
+_CACHE = {}
+_CACHE_LOCK = Lock()
+
+def cache_get(key):
+    now = monotonic()
+    with _CACHE_LOCK:
+        item = _CACHE.get(key)
+        if item and item["expires_at"] > now:
+            return item["value"]
+        if item:
+            _CACHE.pop(key, None)
+    return None
+
+def cache_set(key, value, ttl_seconds):
+    with _CACHE_LOCK:
+        _CACHE[key] = {"value": value, "expires_at": monotonic() + ttl_seconds}
+
+def city_cache_key(city):
+    return re.sub(r"\\s+", " ", city.strip()).casefold()
+
 @app.get("/")
 def home():
     return FileResponse(ROOT / "static" / "index.html")
 
 def geocode(city: str):
+    key = ("geocode", city_cache_key(city))
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
     try:
-        r = requests.get("https://geocoding-api.open-meteo.com/v1/search", params={"name": city, "count": 10, "language": "en", "format": "json"}, timeout=TIMEOUT)
+        r = requests.get(
+            "https://geocoding-api.open-meteo.com/v1/search",
+            params={"name": city, "count": 10, "language": "en", "format": "json"},
+            timeout=TIMEOUT,
+        )
+        if r.status_code == 429:
+            raise HTTPException(
+                503,
+                "The location-search service has reached its request limit. Please try again later."
+            )
         r.raise_for_status()
         results = r.json().get("results", [])
+    except HTTPException:
+        raise
     except requests.RequestException as exc:
         raise HTTPException(502, f"Geocoding service error: {exc}")
     if not results:
         raise HTTPException(404, "City not found. Try a city name such as Chennai, Madurai, Delhi or Mumbai.")
     # Prefer an Indian match when available, but permit other cities too.
     match = next((x for x in results if x.get("country_code") == "IN"), results[0])
+    cache_set(key, match, 24 * 60 * 60)
     return match
 
 def fetch_json(url, params):
     try:
         r = requests.get(url, params=params, timeout=TIMEOUT)
+        if r.status_code == 429:
+            raise HTTPException(
+                503,
+                "The weather provider's request limit has been reached. Please try again later. "
+                "Previously cached results may still be available."
+            )
         if not r.ok:
             raise HTTPException(502, f"Weather provider returned HTTP {r.status_code}: {r.text[:250]}")
         return r.json()
+    except HTTPException:
+        raise
     except requests.RequestException as exc:
         raise HTTPException(502, f"Weather provider connection error: {exc}")
 
@@ -43,6 +91,11 @@ def health():
 
 @app.get("/api/weather")
 def weather(city: str = Query(..., min_length=2, max_length=80)):
+    key = ("weather", city_cache_key(city))
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
+
     place = geocode(city)
     params = {
         "latitude": place["latitude"], "longitude": place["longitude"],
@@ -51,10 +104,17 @@ def weather(city: str = Query(..., min_length=2, max_length=80)):
         "timezone": "auto", "forecast_days": 7, "temperature_unit": "celsius", "wind_speed_unit": "kmh"
     }
     data = fetch_json("https://api.open-meteo.com/v1/forecast", params)
-    return {"city": place.get("name", city), "country": place.get("country", ""), "latitude": place["latitude"], "longitude": place["longitude"], "timezone": data.get("timezone"), "current": data.get("current", {}), "daily": data.get("daily", {}), "source": "Open-Meteo Forecast API", "retrieved_at": data.get("current", {}).get("time")}
+    result = {"city": place.get("name", city), "country": place.get("country", ""), "latitude": place["latitude"], "longitude": place["longitude"], "timezone": data.get("timezone"), "current": data.get("current", {}), "daily": data.get("daily", {}), "source": "Open-Meteo Forecast API", "retrieved_at": data.get("current", {}).get("time")}
+    cache_set(key, result, 10 * 60)
+    return result
 
 @app.get("/api/outlook")
 def outlook(city: str = Query(..., min_length=2, max_length=80)):
+    key = ("outlook", city_cache_key(city), date.today().isoformat())
+    cached = cache_get(key)
+    if cached is not None:
+        return cached
+
     place = geocode(city)
     today = date.today()
     first_next = date(today.year + (today.month == 12), 1 if today.month == 12 else today.month + 1, 1)
@@ -77,7 +137,9 @@ def outlook(city: str = Query(..., min_length=2, max_length=80)):
     # Precipitation is a sum, not a mean; preserve missing values.
     precip = [x for x in sliced.get("precipitation_sum", []) if isinstance(x, (int, float))]
     summary = {"temperature_mean": mean("temperature_2m_mean"), "humidity_mean": mean("relative_humidity_2m_mean"), "wind_mean": mean("wind_speed_10m_mean"), "precipitation_sum": sum(precip) if precip else None}
-    return {"city": place.get("name", city), "month": first_next.strftime("%B %Y"), "daily": sliced, "summary": summary, "source": "Open-Meteo Seasonal Forecast API", "note": "Long-range outlook is uncertain and should be interpreted as a broad model estimate, not a guaranteed day-by-day forecast."}
+    result = {"city": place.get("name", city), "month": first_next.strftime("%B %Y"), "daily": sliced, "summary": summary, "source": "Open-Meteo Seasonal Forecast API", "note": "Long-range outlook is uncertain and should be interpreted as a broad model estimate, not a guaranteed day-by-day forecast."}
+    cache_set(key, result, 6 * 60 * 60)
+    return result
 
 @app.get("/api/history")
 def history():
